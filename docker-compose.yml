@@ -1,0 +1,66 @@
+services:
+  # ParadeDB (PostgreSQL with extensions for vector search)
+  paradedb:
+    image: paradedb/paradedb:latest
+    container_name: chateduca-paradedb
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_DATABASE:-vector_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - paradedb_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chateduca-network
+
+  # Combined Frontend + Backend Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chateduca-app
+    env_file:
+      - .env
+    environment:
+      # Database connection (override with ParadeDB service name)
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@paradedb:5432/${DB_DATABASE:-vector_db}
+      DB_HOST: paradedb
+      DB_PORT: 5432
+      
+      # Node/Frontend
+      NODE_ENV: development
+      PORT: 3000
+      HOST: 0.0.0.0
+      
+    ports:
+      - "3000:3000"  # Frontend API
+      - "5173:5173"  # Vite Dev Server
+      - "8000:8000"  # Backend Python
+    depends_on:
+      paradedb:
+        condition: service_healthy
+    volumes:
+      - ./ui:/app/ui
+      - ./src:/app/src
+      - ./.frontend:/app/.frontend
+      - /app/.frontend/node_modules
+      - app_logs:/app/.frontend/logs
+    networks:
+      - chateduca-network
+    restart: unless-stopped
+
+volumes:
+  paradedb_data:
+    driver: local
+  app_logs:
+    driver: local
+
+networks:
+  chateduca-network:
+    driver: bridge

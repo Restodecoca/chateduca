@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") //ignore
+}
+
+// Modelo de usuário
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  sessions  Session[]
+  messages  Message[]
+  logs      Log[]
+  
+  // Relacionamentos responsável-aluno
+  students  ParentStudent[] @relation("ParentToStudent")
+  parents   ParentStudent[] @relation("StudentToParent")
+
+  @@map("users")
+}
+
+// Modelo de sessão de chat
+model Session {
+  id        String   @id @default(uuid())
+  sessionId String   @unique
+  userId    String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages  Message[]
+
+  @@index([sessionId])
+  @@map("sessions")
+}
+
+// Modelo de mensagem
+model Message {
+  id        String   @id @default(uuid())
+  sessionId String
+  userId    String?
+  role      String   // 'user' ou 'assistant'
+  content   String   @db.Text
+  sources   String[] @default([])
+  metadata  Json?
+  createdAt DateTime @default(now())
+  
+  session   Session  @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+// Modelo de log de auditoria
+model Log {
+  id        String   @id @default(uuid())
+  level     String   // 'info', 'warn', 'error', 'debug'
+  message   String   @db.Text
+  userId    String?
+  requestId String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([level])
+  @@index([createdAt])
+  @@map("logs")
+}
+
+// Relacionamento entre responsável e aluno
+model ParentStudent {
+  id        String   @id @default(uuid())
+  parentId  String
+  studentId String
+  createdAt DateTime @default(now())
+  
+  parent    User     @relation("ParentToStudent", fields: [parentId], references: [id], onDelete: Cascade)
+  student   User     @relation("StudentToParent", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, studentId])
+  @@index([parentId])
+  @@index([studentId])
+  @@map("parent_student")
+}

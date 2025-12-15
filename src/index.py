@@ -1,21 +1,31 @@
 import logging
-import os
+from typing import Optional
 
-from llama_index.core.indices import load_index_from_storage
-from llama_index.core.storage import StorageContext
+from llama_index.core.callbacks import CallbackManager
+from llama_index.core.indices import VectorStoreIndex
+from pydantic import BaseModel, Field
+
+from src.vectordb import get_vector_store
 
 logger = logging.getLogger("uvicorn")
 
-STORAGE_DIR = "src/storage"
+
+class IndexConfig(BaseModel):
+    callback_manager: Optional[CallbackManager] = Field(
+        default=None,
+    )
 
 
-def get_index():
-    # check if storage already exists
-    if not os.path.exists(STORAGE_DIR):
-        return None
-    # load the existing index
-    logger.info(f"Loading index from {STORAGE_DIR}...")
-    storage_context = StorageContext.from_defaults(persist_dir=STORAGE_DIR)
-    index = load_index_from_storage(storage_context)
-    logger.info(f"Finished loading index from {STORAGE_DIR}")
+def get_index(config: IndexConfig = None):
+    if config is None:
+        config = IndexConfig()
+    logger.info("Connecting vector store...")
+    store = get_vector_store()
+    # Load the index from the vector store
+    # If you are using a vector store that doesn't store text,
+    # you must load the index from both the vector store and the document store
+    index = VectorStoreIndex.from_vector_store(
+        store, callback_manager=config.callback_manager
+    )
+    logger.info("Finished load index from vector store.")
     return index

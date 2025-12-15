@@ -3,3 +3,57 @@ storage
 .env
 output
 .ui/
+storage/
+node_modules
+.venv
+ignore/
+
+# Environment files
+*.env
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build outputs
+dist/
+build/
+*.pyc
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+
+# Prisma
+.frontend/prisma/migrations/*_/
+
+# Docker volumes
+paradedb_data/
+app_logs/
+__pycache__/
+
+# Data files (PDFs, large files)
+ui/data/
+*.pdf
+
+*!README.md
+*.md
+ui/data/
+
+storage/

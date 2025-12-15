@@ -5,7 +5,6 @@ from llama_index.core.base.base_query_engine import BaseQueryEngine
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.tools.query_engine import QueryEngineTool
 
-
 def create_query_engine(index: BaseIndex, **kwargs: Any) -> BaseQueryEngine:
     """
     Create a query engine for the given index.
@@ -14,7 +13,7 @@ def create_query_engine(index: BaseIndex, **kwargs: Any) -> BaseQueryEngine:
         index: The index to create a query engine for.
         params (optional): Additional parameters for the query engine, e.g: similarity_top_k
     """
-    top_k = int(os.getenv("TOP_K", 0))
+    top_k = int(os.getenv("TOP_K", 2))
     if top_k != 0 and kwargs.get("filters") is None:
         kwargs["similarity_top_k"] = top_k
 

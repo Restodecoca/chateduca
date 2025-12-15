@@ -1,113 +1,285 @@
-# LlamaIndex Workflow Example
+# ChatEduca
 
-This is a [LlamaIndex](https://www.llamaindex.ai/) project that using [Workflows](https://docs.llamaindex.ai/en/stable/understanding/workflows/) deployed with [LlamaDeploy](https://github.com/run-llama/llama_deploy).
+<div align="center">
 
-LlamaDeploy is a system for deploying and managing LlamaIndex workflows, while LlamaIndexServer provides a pre-built TypeScript server with an integrated chat UI that can connect directly to LlamaDeploy deployments. This example shows how you can quickly set up a complete chat application by combining these two technologies/
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4.21-000000?logo=express&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Latest-2496ED?logo=docker&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-3.0-06B6D4?logo=tailwindcss&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-6.18-2D3748?logo=prisma&logoColor=white)
+![LlamaIndex](https://img.shields.io/badge/LlamaIndex-Latest-000000?logo=llama&logoColor=white)
 
-## Prerequisites
+Sistema de assistente educacional com RAG (Retrieval-Augmented Generation).
 
-If you haven't installed uv, you can follow the instructions [here](https://docs.astral.sh/uv/getting-started/installation/) to install it.
+</div>
 
-You can configure [LLM model](https://docs.llamaindex.ai/en/stable/module_guides/models/llms) and [embedding model](https://docs.llamaindex.ai/en/stable/module_guides/models/embeddings) in [src/settings.py](src/settings.py).
+## Stack
 
-Please setup their API keys in the `src/.env` file.
+**Frontend**: React 18 + TypeScript + Tailwind CSS + React Router v7  
+**Backend API**: Express + Prisma + PostgreSQL  
+**Backend RAG**: FastAPI + LlamaIndex + OpenAI  
+**Database**: ParadeDB (PostgreSQL com extensões para busca vetorial)  
+**Deployment**: Docker + Docker Compose
 
-## Installation
+## Requisitos
 
-Both the SDK and the CLI are part of the LlamaDeploy Python package. To install, just run:
+- Docker e Docker Compose, ou
+- Node.js 18+
+- Python 3.12+
+- PostgreSQL 16+
+
+## Instalação Rápida (Docker)
 
 ```bash
-uv sync
+# 1. Clone o repositório
+git clone <repository-url>
+cd chateduca
+
+# 2. Configure as variáveis de ambiente
+cp .env.example .env
+cp .frontend/.env.example .frontend/.env
+
+# 3. Edite .env e adicione sua OPENAI_API_KEY
+
+# 4. Inicie os containers
+docker compose up -d
+
+# 5. Gere os índices RAG
+docker compose exec app uv run generate
 ```
 
-If you don't have uv installed, you can follow the instructions [here](https://docs.astral.sh/uv/getting-started/installation/).
+Acesse:
+- Frontend: http://localhost:5173
+- API Express: http://localhost:3000
+- Backend Python: http://localhost:8000
+- Docs API: http://localhost:3000/docs
 
-## Generate Index
+## Instalação Manual
 
-Generate the embeddings of the documents in the `./data` directory:
+### Backend Python (RAG)
 
-```shell
+```bash
+# Instale uv se não tiver
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Instale dependências
+uv sync --locked
+
+# Configure .env na raiz
+cp .env.example .env
+
+# Gere os índices de embeddings
 uv run generate
+
+# Inicie o servidor FastAPI
+uv run dev
 ```
 
-## Running the Deployment
+Servidor rodando em http://localhost:8000
 
-At this point we have all we need to run this deployment. Ideally, we would have the API server already running
-somewhere in the cloud, but to get started let's start an instance locally. Run the following python script
-from a shell:
-
-```
-$ uv run -m llama_deploy.apiserver
-INFO:     Started server process [10842]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:4501 (Press CTRL+C to quit)
-```
-
-From another shell, use the CLI, `llamactl`, to create the deployment:
-
-```
-$ uv run llamactl deploy llama_deploy.yml
-Deployment successful: chat
-```
-
-## UI Interface
-
-LlamaDeploy will serve the UI through the apiserver. Point the browser to [http://localhost:4501/deployments/chat/ui](http://localhost:4501/deployments/chat/ui) to interact with your deployment through a user-friendly interface.
-
-## API endpoints
-
-You can find all the endpoints in the [API documentation](http://localhost:4501/docs). To get started, you can try the following endpoints:
-
-Create a new task:
+### Frontend TypeScript
 
 ```bash
-curl -X POST 'http://localhost:4501/deployments/chat/tasks/create' \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "input": "{\"user_msg\":\"Hello\",\"chat_history\":[]}",
-    "service_id": "workflow"
-  }'
+cd .frontend
+
+# Instale dependências
+npm ci
+
+# Configure .env
+cp .env.example .env
+
+# Gere Prisma Client
+npx prisma generate
+
+# Execute migrações
+npx prisma migrate deploy
+
+# Inicie desenvolvimento (React + Express)
+npm run dev
 ```
 
-Stream events:
+Servidores rodando em:
+- React (Vite): http://localhost:5173
+- Express API: http://localhost:3000
+
+## Comandos Principais
+
+### Backend Python
 
 ```bash
-curl 'http://localhost:4501/deployments/chat/tasks/0b411be6-005d-43f0-9b6b-6a0017f08002/events?session_id=dd36442c-45ca-4eaa-8d75-b4e6dad1a83e&raw_event=true' \
-  -H 'Content-Type: application/json'
+uv run dev              # Inicia FastAPI em modo desenvolvimento
+uv run generate         # Gera índices de embeddings
+uv sync --locked        # Instala/atualiza dependências Python
 ```
 
-Note that the task_id and session_id are returned when creating a new task.
+### Frontend TypeScript
 
-## Use Case
+```bash
+npm run dev             # Inicia React (Vite) + Express
+npm run dev:client      # Apenas React (Vite)
+npm run dev:server      # Apenas Express API
+npm run build           # Build para produção
+npm start               # Inicia servidor de produção
+```
 
-We have prepared an [example workflow](./src/workflow.py) for the agentic RAG use case, where you can ask questions about the example documents in the [./data](./data) directory.
-To update the workflow, you can modify the code in [`src/workflow.py`](src/workflow.py).
+### Prisma (ORM)
 
-## Customize the UI
+```bash
+npx prisma generate                    # Gera Prisma Client
+npx prisma migrate dev                 # Cria e aplica migração
+npx prisma migrate deploy              # Aplica migrações (produção)
+npx prisma studio                      # Interface visual do banco
+npx prisma db seed                     # Popula banco com dados iniciais
+```
 
-The UI is served by LLamaIndexServer package, you can configure the UI by modifying the `uiConfig` in the [ui/index.ts](ui/index.ts) file.
+### Docker
 
-The following are the available options:
+```bash
+docker compose up -d                   # Inicia todos os serviços
+docker compose down                    # Para todos os serviços
+docker compose logs -f app             # Logs do container app
+docker compose exec app bash           # Acessa shell do container
+docker compose up --build              # Rebuild e inicia
+```
 
-- `starterQuestions`: Predefined questions for chat interface
-- `componentsDir`: Directory for custom event components
-- `layoutDir`: Directory for custom layout components
-- `llamaDeploy`: The LlamaDeploy configration (deployment name and workflow name that defined in the [llama_deploy.yml](llama_deploy.yml) file)
+## Estrutura do Projeto
 
-## LlamaCloud Integration
+```
+chateduca/
+├── .frontend/                 # Frontend React + Backend Express
+│   ├── src/
+│   │   ├── client/           # React (Vite)
+│   │   ├── server/           # Express API
+│   │   └── types/            # TypeScript types
+│   ├── prisma/               # Schema e migrações
+│   └── package.json
+│
+├── src/                      # Backend Python (RAG)
+│   ├── server.py            # FastAPI server
+│   ├── workflow.py          # LlamaIndex RAG workflow
+│   ├── generate.py          # Gerador de índices
+│   └── settings.py          # Configurações
+│
+├── ui/                       # HTML/CSS/JS estáticos
+├── docker-compose.yml        # Orquestração Docker
+├── Dockerfile                # Multi-stage build
+└── pyproject.toml            # Dependências Python
+```
 
-You can enable LlamaCloud integration by setting the `llamaCloud` option in the [ui/index.ts](ui/index.ts) file.
+## Variáveis de Ambiente
 
-The following are the available options:
+### Raiz (.env)
 
-- `outputDir`: The directory for LlamaCloud output
+```env
+OPENAI_API_KEY=sk-...
+MODEL=gpt-4o-mini
+EMBEDDING_MODEL=text-embedding-3-small
 
-## Learn More
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/vector_db
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_DATABASE=vector_db
+```
 
-- [LlamaIndex Documentation](https://docs.llamaindex.ai) - learn about LlamaIndex.
-- [Workflows Introduction](https://docs.llamaindex.ai/en/stable/understanding/workflows/) - learn about LlamaIndex workflows.
-- [LlamaDeploy GitHub Repository](https://github.com/run-llama/llama_deploy)
-- [Chat-UI Documentation](https://ts.llamaindex.ai/docs/chat-ui)
+### Frontend (.frontend/.env)
 
-You can check out [the LlamaIndex GitHub repository](https://github.com/run-llama/llama_index) - your feedback and contributions are welcome!
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/vector_db
+VITE_API_URL=/api
+BACKEND_URL=http://localhost:8000
+PORT=3000
+NODE_ENV=development
+```
+
+## Endpoints API
+
+### Autenticação (Express)
+
+```
+POST   /api/auth/register     # Criar conta
+POST   /api/auth/login        # Login
+GET    /api/auth/me           # Perfil do usuário
+POST   /api/auth/refresh      # Renovar token
+```
+
+### Chat (FastAPI)
+
+```
+POST   /chat                  # Enviar mensagem ao RAG
+GET    /docs                  # Documentação Swagger
+```
+
+### Sistema (Express)
+
+```
+GET    /api/system/status     # Status do sistema
+GET    /docs                  # Documentação Scalar
+```
+
+## Workflow RAG
+
+O sistema usa LlamaIndex para implementar RAG:
+
+1. Documentos são indexados com `uv run generate`
+2. Embeddings são armazenados em `src/storage/`
+3. Queries do usuário buscam contexto relevante
+4. LLM gera resposta baseada no contexto recuperado
+
+## Desenvolvimento
+
+### Hot Reload
+
+Ambos os servidores têm hot reload:
+- **React (Vite)**: Recarrega automaticamente ao editar `src/client/`
+- **Express**: Nodemon reinicia ao editar `src/server/`
+- **FastAPI**: Uvicorn reinicia ao editar `src/`
+
+### Database Migrations
+
+```bash
+# Criar nova migração
+cd .frontend
+npx prisma migrate dev --name nome_da_migracao
+
+# Aplicar migrações pendentes
+npx prisma migrate deploy
+
+# Resetar banco (desenvolvimento)
+npx prisma migrate reset
+```
+
+## Troubleshooting
+
+### Porta em uso
+
+```powershell
+# Windows PowerShell
+Get-Process -Id (Get-NetTCPConnection -LocalPort 5173).OwningProcess | Stop-Process
+Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess | Stop-Process
+Get-Process -Id (Get-NetTCPConnection -LocalPort 8000).OwningProcess | Stop-Process
+```
+
+### Rebuild completo Docker
+
+```bash
+docker compose down -v
+docker compose build --no-cache
+docker compose up -d
+```
+
+### Erro no Prisma Client
+
+```bash
+cd .frontend
+npx prisma generate
+```
+
+## Licença
+
+MIT

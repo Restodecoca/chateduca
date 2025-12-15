@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "lib": ["ES2022"],
+    "outDir": "./dist/server",
+    "rootDir": "./src/server",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "declaration": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/server/*"],
+      "@server/*": ["src/server/*"]
+    }
+  },
+  "include": [
+    "src/server/**/*",
+    "src/types/**/*",
+    "prisma/**/*"
+  ],
+  "exclude": ["node_modules", "dist", "src/client"]
+}
