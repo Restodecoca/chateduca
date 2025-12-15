@@ -36,7 +36,7 @@ Sistema de assistente educacional com RAG (Retrieval-Augmented Generation).
 
 ```bash
 # 1. Clone o repositório
-git clone <repository-url>
+git clone https://github.com/Restodecoca/chateduca.git
 cd chateduca
 
 # 2. Configure as variáveis de ambiente
